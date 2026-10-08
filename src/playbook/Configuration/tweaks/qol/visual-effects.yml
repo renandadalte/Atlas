@@ -54,7 +54,7 @@ actions:
   - !registryValue:
     path: 'HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
     value: 'ListviewShadow'
-    data: '1'
+    data: '0'
     type: REG_DWORD
     
     
