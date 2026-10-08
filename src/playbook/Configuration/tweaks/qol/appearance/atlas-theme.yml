@@ -13,16 +13,6 @@ actions:
     exeDir: true
     runas: currentUserElevated
     
-  - !powerShell:
-    command: |
-      .\AtlasModules\initPowerShell.ps1
-      Set-Theme -Path """$([Environment]::GetFolderPath('Windows'))\Resources\Themes\atlas-v0.5.x-dark.theme"""
-      Set-ThemeMRU
-    wait: true
-    onUpgrade: false
-    exeDir: true
-    runas: currentUserElevated
-
     # Applies Atlas lockscreen background & wallpaper 
     # Also disables fun facts, tips, tricks, and more on lockscreen - only on Enterprise/Education
   - !registryValue:
@@ -54,12 +44,3 @@ actions:
     runas: currentUserElevated
     onUpgrade: false
 
-    # Set Atlas theme as default for new users
-  - !registryValue:
-    path: 'HKU\AME_UserHive_Default\Software\Policies\Microsoft\Windows\Personalization'
-    value: 'ThemeFile'
-    data: '%windir%\Resources\Themes\atlas-v0.5.x-dark.theme'
-    type: REG_SZ
-    onUpgrade: true
-    
-    

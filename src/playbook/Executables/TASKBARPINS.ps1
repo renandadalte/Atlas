@@ -1,5 +1,6 @@
 param (
-    [string]$Browser
+    [string]$Browser,
+    [switch]$Clear
 )
 .\AtlasModules\initPowerShell.ps1
 
@@ -51,6 +52,33 @@ if ($Browser) {
     }
 }
 
+# Paths
+$taskBarLocation = 'Microsoft\Internet Explorer\Quick Launch\User Pinned\TaskBar'
+$rootKey = 'SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Taskband'
+
+if ($Clear) {
+    foreach ($userKey in (Get-RegUserPaths -NoDefault).PsPath) {
+        $sid = Split-Path $userKey -Leaf
+        $appData = Get-ItemPropertyValue "$userKey\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders" -Name 'AppData' -EA 0
+
+        if ([string]::IsNullOrEmpty($appData) -or !(Test-Path $appData)) {
+            Write-Error "Couldn't find AppData value for $sid!"
+            continue
+        }
+
+        Write-Title "Clearing taskbar shortcuts for '$sid'..."
+        $taskBarAppData = "$appData\$taskBarLocation"
+        Get-ChildItem -LiteralPath $taskBarAppData -Force -EA 0 | Remove-Item -Force -Recurse -EA 0
+
+        $key = "$(Convert-Path $userKey)\$rootKey"
+        reg delete "$key" /v Favorites /f 2>$null | Out-Null
+        reg delete "$key" /v FavoritesResolve /f 2>$null | Out-Null
+    }
+
+    Stop-Process -Name explorer -Force -EA 0
+    exit
+}
+
 # Init shortcuts
 $tmp = New-Item (Join-Path -Path $([System.IO.Path]::GetTempPath()) -ChildPath $([System.Guid]::NewGuid())) -ItemType Directory -Force
 New-Shortcut -Source $($shortcuts.$explorer.Path) -Destination "$tmp\$explorer.lnk"
@@ -79,10 +107,6 @@ foreach ($entry in $regTaskbar.GetEnumerator()) {
         $reg.Add($entry.Name -replace 'Reg', $entry.Value)
     }
 }
-
-# Paths
-$taskBarLocation = 'Microsoft\Internet Explorer\Quick Launch\User Pinned\TaskBar'
-$rootKey = 'SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Taskband'
 
 # Clearing taskbar, copying the shortcut, setting registry
 foreach ($userKey in (Get-RegUserPaths -NoDefault).PsPath) {

@@ -25,9 +25,7 @@ if ([System.Environment]::OSVersion.Version.Build -ge 22000) {
     & "$atlasDesktop\4. Interface Tweaks\Context Menus\Windows 11\Old Context Menu (default).cmd" /silent
     & "$atlasDesktop\4. Interface Tweaks\File Explorer Customization\Gallery\Disable Gallery (default).cmd" /silent
 
-    # Set ThemeMRU (recent themes)
-    Set-Theme -Path "$([Environment]::GetFolderPath('Windows'))\Resources\Themes\atlas-v0.5.x-dark.theme"
-    Set-ThemeMRU | Out-Null
+    # Keep the existing user theme; Atlas does not force an Atlas theme.
 }
 
 # Set lockscreen wallpaper
@@ -42,14 +40,9 @@ Set-LockscreenImage
 # Set visual effects
 & "$atlasDesktop\4. Interface Tweaks\Visual Effects (Animations)\Atlas Visual Effects (default).cmd" /silent
 
-# Set taskbar pins 
-$valueName = "Browser"
-$value = Get-ItemProperty -Path "HKLM:\SOFTWARE\AtlasOS\SetupOptions" -Name $valueName -ErrorAction Stop
-$Browser = $value.$valueName
-$Browser
-
-& "$atlasModules\Scripts\taskbarPins.ps1" $Browser
-Set-ItemProperty -Path "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Search" -Name "SearchboxTaskbarMode" -Value 1
+# Keep the taskbar free of application pins for new users.
+& "$atlasModules\Scripts\taskbarPins.ps1" -Clear
+Set-ItemProperty -Path "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Search" -Name "SearchboxTaskbarMode" -Value 0
 
 # Leave
 Start-Sleep 5 
